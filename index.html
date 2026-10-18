@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MCU Tracker</title>
+
+  <!-- iOS Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MCU Tracker">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0d0d12">
+
+  <!-- Embedded Premium Marvel-Style Glowing SVG Icon (Favicon & Apple Touch Icon) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'><defs><linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%231a0b10'/><stop offset='50%' stop-color='%230b0b12'/><stop offset='100%' stop-color='%23050508'/></linearGradient><linearGradient id='gold' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23FFE259'/><stop offset='100%' stop-color='%23FFA751'/></linearGradient><linearGradient id='red' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23FF2A2A'/><stop offset='100%' stop-color='%23A90311'/></linearGradient><filter id='glow' x='-20%' y='-20%' width='140%' height='140%'><feGaussianBlur stdDeviation='12' result='blur'/><feComposite in='SourceGraphic' in2='blur' operator='over'/></filter></defs><rect width='512' height='512' rx='112' fill='url(%23bg)'/><rect x='16' y='16' width='480' height='480' rx='96' fill='none' stroke='url(%23red)' stroke-width='6' opacity='0.4'/><circle cx='256' cy='256' r='210' fill='none' stroke='url(%23gold)' stroke-width='2' opacity='0.25'/><g filter='url(%23glow)' transform='translate(0, 0)'><path d='M100 360 L100 152 L150 152 L190 270 L230 152 L280 152 L280 360 L235 360 L235 230 L198 335 L182 335 L145 230 L145 360 Z' fill='url(%23red)'/><path d='M300 360 L300 152 L350 152 L350 315 L410 315 L410 360 Z' fill='url(%23gold)'/></g><path d='M 110 375 L 402 375' stroke='url(%23gold)' stroke-width='4' stroke-linecap='round'/></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'><defs><linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%231a0b10'/><stop offset='50%' stop-color='%230b0b12'/><stop offset='100%' stop-color='%23050508'/></linearGradient><linearGradient id='gold' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23FFE259'/><stop offset='100%' stop-color='%23FFA751'/></linearGradient><linearGradient id='red' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23FF2A2A'/><stop offset='100%' stop-color='%23A90311'/></linearGradient></defs><rect width='512' height='512' rx='112' fill='url(%23bg)'/><g transform='translate(0, 0)'><path d='M100 360 L100 152 L150 152 L190 270 L230 152 L280 152 L280 360 L235 360 L235 230 L198 335 L182 335 L145 230 L145 360 Z' fill='url(%23red)'/><path d='M300 360 L300 152 L350 152 L350 315 L410 315 L410 360 Z' fill='url(%23gold)'/></g></svg>">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            marvelRed: '#E62429',
+            marvelGold: '#F8B700',
+            marvelDark: '#0D0D12',
+            marvelCard: '#161620',
+            marvelBorder: '#2A2A38'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Safe Area Padding for iOS Notches, Dynamic Island & Home Indicator */
+    .pt-safe { padding-top: max(1.25rem, env(safe-area-inset-top)); }
+    .pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+    
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d0d12; }
+    ::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #e62429; }
+
+    /* Glowing Effects */
+    .glow-red {
+      box-shadow: 0 0 15px rgba(230, 36, 41, 0.35);
+    }
+    .glow-gold {
+      box-shadow: 0 0 15px rgba(248, 183, 0, 0.3);
+    }
+    .text-glow {
+      text-shadow: 0 0 10px rgba(230, 36, 41, 0.6);
+    }
+    
+    /* Subtle animations */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.02); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-marvelDark text-gray-100 min-h-screen flex flex-col font-sans antialiased selection:bg-marvelRed selection:text-white pb-safe">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-30 bg-marvelDark/90 backdrop-blur-md border-b border-marvelBorder pt-safe px-4 pb-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <!-- Brand SVG Icon -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-900/60 to-black p-0.5 border border-marvelRed/40 shadow-lg flex items-center justify-center flex-shrink-0">
+          <svg class="w-7 h-7" viewBox="0 0 512 512">
+            <path d="M100 360 L100 152 L150 152 L190 270 L230 152 L280 152 L280 360 L235 360 L235 230 L198 335 L182 335 L145 230 L145 360 Z" fill="#E62429"/>
+            <path d="M300 360 L300 152 L350 152 L350 315 L410 315 L410 360 Z" fill="#F8B700"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-xl font-black tracking-wider uppercase text-white leading-none flex items-center gap-2">
+            MCU <span class="text-marvelRed text-glow">Tracker</span>
+          </h1>
+          <p class="text-[11px] text-gray-400 font-medium tracking-wide">Marvel Cinematic Universe</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button id="pwaPromptBtn" onclick="toggleIosBanner()" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-marvelCard border border-marvelGold/40 text-marvelGold text-xs font-semibold hover:bg-marvelGold/10 transition">
+          <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
+          <span>Aggiungi a Home</span>
+        </button>
+        <button onclick="resetProgress()" class="p-2 rounded-lg bg-marvelCard border border-marvelBorder text-gray-400 hover:text-marvelRed hover:border-marvelRed/40 transition" title="Ripristina Predefiniti">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- STATS PROGRESS BAR -->
+    <div class="max-w-6xl mx-auto mt-3">
+      <div class="flex justify-between items-center text-xs mb-1 font-semibold">
+        <span class="text-gray-400 flex items-center gap-1">
+          <i data-lucide="film" class="w-3.5 h-3.5 text-marvelRed"></i>
+          Progresso Visione
+        </span>
+        <span id="statsCounter" class="text-marvelGold font-bold">0 / 0 (0%)</span>
+      </div>
+      <div class="w-full bg-marvelCard h-2.5 rounded-full overflow-hidden border border-marvelBorder">
+        <div id="progressBar" class="bg-gradient-to-r from-marvelRed via-red-500 to-marvelGold h-full rounded-full transition-all duration-500 ease-out w-0"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- iOS Aggiungi a Home BANNER / INSTRUCTIONS MODAL -->
+  <div id="iosHomeBanner" class="hidden max-w-6xl mx-auto px-4 mt-3">
+    <div class="bg-gradient-to-r from-red-950/80 via-marvelCard to-marvelCard border border-marvelGold/40 rounded-xl p-3.5 shadow-xl relative text-xs flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-marvelGold/10 text-marvelGold flex-shrink-0">
+          <i data-lucide="smartphone" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="font-bold text-white text-sm">Installa come App su iPhone / iPad</p>
+          <p class="text-gray-300">Tocca il tasto <span class="font-semibold text-marvelGold">Condividi <i data-lucide="share" class="inline w-3.5 h-3.5"></i></span> in Safari e seleziona <span class="font-semibold text-marvelGold">"Aggiungi alla schermata Home"</span> per l'esperienza a schermo intero.</p>
+        </div>
+      </div>
+      <button onclick="toggleIosBanner(false)" class="text-gray-400 hover:text-white p-1">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-6xl mx-auto w-full px-4 pt-4 flex-grow">
+    
+    <!-- CONTROLS: SEARCH & FILTERS -->
+    <div class="bg-marvelCard border border-marvelBorder rounded-xl p-3 mb-6 shadow-lg space-y-3">
+      <!-- Search Input -->
+      <div class="relative">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <input type="text" id="searchInput" placeholder="Cerca film, serie tv, personaggi..." 
+          class="w-full pl-9 pr-8 py-2 bg-marvelDark/80 border border-marvelBorder rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-marvelRed transition">
+        <button id="clearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+          <i data-lucide="x-circle" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Filters & Sort Options -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-marvelBorder/50">
+        <!-- Quick Category Tabs -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+          <button onclick="setFilter('all')" class="filter-btn active px-2.5 py-1 rounded-md bg-marvelRed text-white">Tutti</button>
+          <button onclick="setFilter('seen')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Visti</button>
+          <button onclick="setFilter('unseen')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Da Vedere</button>
+          <button onclick="setFilter('Film')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Film</button>
+          <button onclick="setFilter('Serie TV')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Serie TV</button>
+          <button onclick="setFilter('Saga dell\'Infinito')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Infinito</button>
+          <button onclick="setFilter('Saga del Multiverso')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Multiverso</button>
+        </div>
+
+        <!-- Sorting Dropdown -->
+        <div class="flex items-center gap-1.5 ml-auto text-xs">
+          <label class="text-gray-400 font-medium">Ordina:</label>
+          <select id="sortSelect" onchange="renderList()" class="bg-marvelDark border border-marvelBorder rounded-md px-2 py-1 text-white text-xs focus:outline-none focus:border-marvelRed">
+            <option value="phase">Per Fase</option>
+            <option value="year">Per Anno</option>
+            <option value="chronological">Ordine Cronologico</option>
+            <option value="title">A-Z Titolo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS GRID CONTAINER -->
+    <div id="mcuContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+      <!-- Cards rendered via JS -->
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="hidden text-center py-12">
+      <i data-lucide="film-off" class="w-12 h-12 text-gray-600 mx-auto mb-3"></i>
+      <h3 class="text-lg font-bold text-gray-300">Nessun titolo trovato</h3>
+      <p class="text-xs text-gray-500 mt-1">Nessun contenuto rispetta i criteri di ricerca o i filtri selezionati.</p>
+    </div>
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // MCU Master Dataset (Phase 1 to Phase 6)
+    const initialMCUData = [
+      // PHASE 1
+      { id: "iron-man", title: "Iron Man", type: "Film", releaseYear: 2008, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 3, defaultChecked: true },
+      { id: "the-incredible-hulk", title: "L'incredibile Hulk", type: "Film", releaseYear: 2008, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 5, defaultChecked: true },
+      { id: "iron-man-2", title: "Iron Man 2", type: "Film", releaseYear: 2010, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 4, defaultChecked: true },
+      { id: "thor", title: "Thor", type: "Film", releaseYear: 2011, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 6, defaultChecked: true },
+      { id: "captain-america-first-avenger", title: "Captain America - Il primo Vendicatore", type: "Film", releaseYear: 2011, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 1, defaultChecked: true },
+      { id: "the-avengers", title: "The Avengers", type: "Film", releaseYear: 2012, phase: 1, saga: "Saga dell'Infinito", chronoOrder: 7, defaultChecked: true },
+
+      // PHASE 2
+      { id: "iron-man-3", title: "Iron Man 3", type: "Film", releaseYear: 2013, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 8, defaultChecked: true },
+      { id: "thor-dark-world", title: "Thor: The Dark World", type: "Film", releaseYear: 2013, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 9, defaultChecked: true },
+      { id: "captain-america-winter-soldier", title: "Captain America: The Winter Soldier", type: "Film", releaseYear: 2014, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 10, defaultChecked: true },
+      { id: "guardians-of-the-galaxy", title: "Guardiani della Galassia", type: "Film", releaseYear: 2014, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 11, defaultChecked: true },
+      { id: "avengers-age-of-ultron", title: "Avengers: Age of Ultron", type: "Film", releaseYear: 2015, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 13, defaultChecked: true },
+      { id: "ant-man", title: "Ant-Man", type: "Film", releaseYear: 2015, phase: 2, saga: "Saga dell'Infinito", chronoOrder: 14, defaultChecked: true },
+
+      // PHASE 3
+      { id: "captain-america-civil-war", title: "Captain America: Civil War", type: "Film", releaseYear: 2016, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 15, defaultChecked: true },
+      { id: "doctor-strange", title: "Doctor Strange", type: "Film", releaseYear: 2016, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 18, defaultChecked: true },
+      { id: "guardians-of-the-galaxy-vol-2", title: "Guardiani della Galassia Vol. 2", type: "Film", releaseYear: 2017, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 12, defaultChecked: true },
+      { id: "spider-man-homecoming", title: "Spider-Man: Homecoming", type: "Film", releaseYear: 2017, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 17, defaultChecked: true },
+      { id: "thor-ragnarok", title: "Thor: Ragnarok", type: "Film", releaseYear: 2017, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 20, defaultChecked: true },
+      { id: "black-panther", title: "Black Panther", type: "Film", releaseYear: 2018, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 16, defaultChecked: true },
+      { id: "avengers-infinity-war", title: "Avengers: Infinity War", type: "Film", releaseYear: 2018, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 21, defaultChecked: true },
+      { id: "ant-man-and-the-wasp", title: "Ant-Man and the Wasp", type: "Film", releaseYear: 2018, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 19, defaultChecked: true },
+      { id: "captain-marvel", title: "Captain Marvel", type: "Film", releaseYear: 2019, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 2, defaultChecked: true },
+      { id: "avengers-endgame", title: "Avengers: Endgame", type: "Film", releaseYear: 2019, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 22, defaultChecked: true },
+      { id: "spider-man-far-from-home", title: "Spider-Man: Far From Home", type: "Film", releaseYear: 2019, phase: 3, saga: "Saga dell'Infinito", chronoOrder: 25, defaultChecked: true },
+
+      // PHASE 4
+      { id: "wandavision", title: "WandaVision", type: "Serie TV", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 23, defaultChecked: true },
+      { id: "falcon-and-winter-soldier", title: "The Falcon and the Winter Soldier", type: "Serie TV", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 24, defaultChecked: true },
+      { id: "loki-s1", title: "Loki (Stagione 1)", type: "Serie TV", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 26, defaultChecked: true },
+      { id: "black-widow", title: "Black Widow", type: "Film", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 15.5, defaultChecked: true },
+      { id: "what-if-s1", title: "What If...? (Stagione 1)", type: "Serie TV", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 27, defaultChecked: true },
+      { id: "shang-chi", title: "Shang-Chi e la leggenda dei Dieci Anelli", type: "Film", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 28, defaultChecked: true },
+      { id: "eternals", title: "Eternals", type: "Film", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 29, defaultChecked: true },
+      { id: "hawkeye", title: "Hawkeye", type: "Serie TV", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 31, defaultChecked: true },
+      { id: "spider-man-no-way-home", title: "Spider-Man: No Way Home", type: "Film", releaseYear: 2021, phase: 4, saga: "Saga del Multiverso", chronoOrder: 30, defaultChecked: true },
+      { id: "moon-knight", title: "Moon Knight", type: "Serie TV", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 32, defaultChecked: true },
+      { id: "doctor-strange-multiverse-madness", title: "Doctor Strange nel Multiverso della Follia", type: "Film", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 33, defaultChecked: true },
+      { id: "ms-marvel", title: "Ms. Marvel", type: "Serie TV", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 34, defaultChecked: true },
+      { id: "thor-love-and-thunder", title: "Thor: Love and Thunder", type: "Film", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 35, defaultChecked: true },
+      { id: "she-hulk", title: "She-Hulk: Attorney at Law", type: "Serie TV", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 36, defaultChecked: true },
+      { id: "werewolf-by-night", title: "Licantropus (Special Present)", type: "Speciale", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 37, defaultChecked: true },
+      { id: "black-panther-wakanda-forever", title: "Black Panther: Wakanda Forever", type: "Film", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 38, defaultChecked: true },
+      { id: "guardians-holiday-special", title: "Guardiani della Galassia: Holiday Special", type: "Speciale", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 39, defaultChecked: true },
+
+      // PHASE 5
+      { id: "ant-man-quantumania", title: "Ant-Man and the Wasp: Quantumania", type: "Film", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 40, defaultChecked: true },
+      { id: "guardians-of-the-galaxy-vol-3", title: "Guardiani della Galassia Vol. 3", type: "Film", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 41, defaultChecked: true },
+      { id: "secret-invasion", title: "Secret Invasion", type: "Serie TV", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 42, defaultChecked: true },
+      { id: "loki-s2", title: "Loki (Stagione 2)", type: "Serie TV", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 43, defaultChecked: false },
+      { id: "the-marvels", title: "The Marvels", type: "Film", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 44, defaultChecked: false },
+      { id: "what-if-s2", title: "What If...? (Stagione 2)", type: "Serie TV", releaseYear: 2023, phase: 5, saga: "Saga del Multiverso", chronoOrder: 45, defaultChecked: false },
+      { id: "echo", title: "Echo", type: "Serie TV", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 46, defaultChecked: false },
+      { id: "deadpool-and-wolverine", title: "Deadpool & Wolverine", type: "Film", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 47, defaultChecked: false },
+      { id: "agatha-all-along", title: "Agatha All Along", type: "Serie TV", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 48, defaultChecked: false },
+      { id: "captain-america-brave-new-world", title: "Captain America: Brave New World", type: "Film", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 49, defaultChecked: false },
+      { id: "daredevil-born-again", title: "Daredevil: Born Again", type: "Serie TV", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 50, defaultChecked: false },
+      { id: "thunderbolts", title: "Thunderbolts*", type: "Film", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 51, defaultChecked: false },
+
+      // PHASE 6
+      { id: "fantastic-four-first-steps", title: "The Fantastic Four: First Steps", type: "Film", releaseYear: 2025, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52, defaultChecked: false },
+      { id: "avengers-doomsday", title: "Avengers: Doomsday", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 53, defaultChecked: false },
+      { id: "spider-man-4", title: "Spider-Man 4", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 54, defaultChecked: false },
+      { id: "avengers-secret-wars", title: "Avengers: Secret Wars", type: "Film", releaseYear: 2027, phase: 6, saga: "Saga del Multiverso", chronoOrder: 55, defaultChecked: false }
+    ];
+
+    // App State Management
+    let userState = {};
+    let currentFilter = 'all';
+
+    // Initialize application
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      setupEventListeners();
+      checkIosPrompt();
+      renderList();
+      lucide.createIcons();
+    });
+
+    // Load user watch state from LocalStorage or initialize with defaults
+    function loadState() {
+      const saved = localStorage.getItem('mcu_tracker_state_v2');
+      if (saved) {
+        try {
+          userState = JSON.parse(saved);
+        } catch (e) {
+          initDefaultState();
+        }
+      } else {
+        initDefaultState();
+      }
+    }
+
+    function initDefaultState() {
+      userState = {};
+      initialMCUData.forEach(item => {
+        userState[item.id] = item.defaultChecked;
+      });
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem('mcu_tracker_state_v2', JSON.stringify(userState));
+      updateProgress();
+    }
+
+    function toggleWatchState(id) {
+      userState[id] = !userState[id];
+      saveState();
+      
+      // Update UI elements without complete re-render for smooth interaction
+      const card = document.getElementById(`card-${id}`);
+      const checkIcon = document.getElementById(`check-${id}`);
+      const badge = document.getElementById(`badge-${id}`);
+
+      if (card && checkIcon && badge) {
+        if (userState[id]) {
+          card.classList.add('border-marvelRed/60', 'bg-gradient-to-b', 'from-marvelCard', 'to-red-950/20');
+          card.classList.remove('border-marvelBorder', 'opacity-70');
+          checkIcon.className = "w-5 h-5 rounded-full bg-marvelRed text-white flex items-center justify-center transition";
+          checkIcon.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>`;
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-marvelRed/20 text-marvelRed border border-marvelRed/30";
+          badge.textContent = "Visto";
+        } else {
+          card.classList.remove('border-marvelRed/60', 'bg-gradient-to-b', 'from-marvelCard', 'to-red-950/20');
+          card.classList.add('border-marvelBorder', 'opacity-75');
+          checkIcon.className = "w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition";
+          checkIcon.innerHTML = "";
+          badge.className = "text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700";
+          badge.textContent = "Da Vedere";
+        }
+        lucide.createIcons();
+      }
+    }
+
+    function resetProgress() {
+      if (confirm("Vuoi davvero ripristinare i dati di visione ai valori predefiniti?")) {
+        initDefaultState();
+        renderList();
+      }
+    }
+
+    // Update Progress Bar & Counter
+    function updateProgress() {
+      const total = initialMCUData.length;
+      const completed = Object.values(userState).filter(Boolean).length;
+      const percentage = Math.round((completed / total) * 100);
+
+      document.getElementById('statsCounter').textContent = `${completed} / ${total} (${percentage}%)`;
+      document.getElementById('progressBar').style.width = `${percentage}%`;
+    }
+
+    // Filters and Sorting
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(filter.toLowerCase()) || 
+           (filter === 'all' && btn.textContent === 'Tutti') ||
+           (filter === 'seen' && btn.textContent === 'Visti') ||
+           (filter === 'unseen' && btn.textContent === 'Da Vedere') ||
+           (filter === "Saga dell'Infinito" && btn.textContent === 'Infinito') ||
+           (filter === "Saga del Multiverso" && btn.textContent === 'Multiverso')) {
+          btn.className = "filter-btn active px-2.5 py-1 rounded-md bg-marvelRed text-white font-medium shadow";
+        } else {
+          btn.className = "filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50 font-medium";
+        }
+      });
+      renderList();
+    }
+
+    function setupEventListeners() {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', () => {
+        document.getElementById('clearSearch').classList.toggle('hidden', !searchInput.value);
+        renderList();
+      });
+    }
+
+    function clearSearch() {
+      const searchInput = document.getElementById('searchInput');
+      searchInput.value = '';
+      document.getElementById('clearSearch').classList.add('hidden');
+      renderList();
+    }
+
+    // Render Title Cards
+    function renderList() {
+      const container = document.getElementById('mcuContainer');
+      const emptyState = document.getElementById('emptyState');
+      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+      const sortVal = document.getElementById('sortSelect').value;
+
+      let filtered = initialMCUData.filter(item => {
+        // Search Filter
+        const matchesSearch = item.title.toLowerCase().includes(searchVal) || 
+                              item.type.toLowerCase().includes(searchVal) ||
+                              item.releaseYear.toString().includes(searchVal);
+        if (!matchesSearch) return false;
+
+        // Category / Status Filter
+        if (currentFilter === 'seen') return userState[item.id] === true;
+        if (currentFilter === 'unseen') return userState[item.id] === false;
+        if (currentFilter === 'Film') return item.type === 'Film';
+        if (currentFilter === 'Serie TV') return item.type === 'Serie TV';
+        if (currentFilter === "Saga dell'Infinito") return item.saga === "Saga dell'Infinito";
+        if (currentFilter === "Saga del Multiverso") return item.saga === "Saga del Multiverso";
+
+        return true;
+      });
+
+      // Sorting
+      filtered.sort((a, b) => {
+        if (sortVal === 'phase') {
+          if (a.phase !== b.phase) return a.phase - b.phase;
+          return a.releaseYear - b.releaseYear;
+        } else if (sortVal === 'year') {
+          return a.releaseYear - b.releaseYear;
+        } else if (sortVal === 'chronological') {
+          return a.chronoOrder - b.chronoOrder;
+        } else if (sortVal === 'title') {
+          return a.title.localeCompare(b.title);
+        }
+      });
+
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach(item => {
+        const isWatched = userState[item.id];
+        const card = document.createElement('div');
+        
+        card.id = `card-${item.id}`;
+        card.onclick = () => toggleWatchState(item.id);
+        
+        card.className = `cursor-pointer rounded-xl p-3.5 border transition-all duration-200 select-none relative overflow-hidden flex flex-col justify-between ${
+          isWatched 
+            ? 'border-marvelRed/60 bg-gradient-to-b from-marvelCard to-red-950/20 shadow-md' 
+            : 'border-marvelBorder bg-marvelCard hover:border-gray-500 opacity-75'
+        }`;
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-marvelDark border border-marvelBorder text-marvelGold">
+                Fase ${item.phase}
+              </span>
+              <span class="text-[10px] font-medium text-gray-400">
+                ${item.type}
+              </span>
+            </div>
+            <div id="check-${item.id}" class="${
+              isWatched 
+                ? 'w-5 h-5 rounded-full bg-marvelRed text-white flex items-center justify-center transition' 
+                : 'w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition'
+            }">
+              ${isWatched ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
+            </div>
+          </div>
+
+          <div class="my-1">
+            <h2 class="font-extrabold text-sm text-white leading-snug line-clamp-2">${item.title}</h2>
+          </div>
+
+          <div class="flex items-center justify-between mt-3 pt-2 border-t border-marvelBorder/40 text-xs">
+            <span class="text-gray-400 font-medium">${item.releaseYear}</span>
+            <span id="badge-${item.id}" class="${
+              isWatched 
+                ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-marvelRed/20 text-marvelRed border border-marvelRed/30' 
+                : 'text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700'
+            }">
+              ${isWatched ? 'Visto' : 'Da Vedere'}
+            </span>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateProgress();
+      lucide.createIcons();
+    }
+
+    // iOS PWA Home Banner logic
+    function checkIosPrompt() {
+      const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+      // Show install recommendation if on iOS and not yet running in standalone web app mode
+      if (isIos && !isStandalone) {
+        document.getElementById('pwaPromptBtn').classList.remove('hidden');
+        // Auto show once if not dismissed
+        if (!localStorage.getItem('mcu_pwa_banner_dismissed')) {
+          toggleIosBanner(true);
+        }
+      }
+    }
+
+    function toggleIosBanner(show) {
+      const banner = document.getElementById('iosHomeBanner');
+      if (show === undefined) {
+        banner.classList.toggle('hidden');
+      } else if (show) {
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+        localStorage.setItem('mcu_pwa_banner_dismissed', 'true');
+      }
+    }
+  </script>
+</body>
+</html>

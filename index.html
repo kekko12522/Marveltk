@@ -2,7 +2,7 @@
 <html lang="it" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>MCU Tracker</title>
 
   <!-- iOS Web App Meta Tags -->
@@ -100,7 +100,13 @@
           <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
           <span>Aggiungi a Home</span>
         </button>
-        <button onclick="resetProgress()" class="p-2 rounded-lg bg-marvelCard border border-marvelBorder text-gray-400 hover:text-marvelRed hover:border-marvelRed/40 transition" title="Ripristina Predefiniti">
+        <button onclick="exportProgress()" class="p-2 rounded-lg bg-marvelCard border border-marvelBorder text-gray-400 hover:text-marvelGold hover:border-marvelGold/40 transition" title="Copia backup dei progressi" aria-label="Esporta progressi">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+        <button onclick="importProgress()" class="p-2 rounded-lg bg-marvelCard border border-marvelBorder text-gray-400 hover:text-marvelGold hover:border-marvelGold/40 transition" title="Ripristina da backup" aria-label="Importa progressi">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+        </button>
+        <button onclick="resetProgress()" class="p-2 rounded-lg bg-marvelCard border border-marvelBorder text-gray-400 hover:text-marvelRed hover:border-marvelRed/40 transition" title="Ripristina Predefiniti" aria-label="Ripristina predefiniti">
           <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
         </button>
       </div>
@@ -118,6 +124,7 @@
       <div class="w-full bg-marvelCard h-2.5 rounded-full overflow-hidden border border-marvelBorder">
         <div id="progressBar" class="bg-gradient-to-r from-marvelRed via-red-500 to-marvelGold h-full rounded-full transition-all duration-500 ease-out w-0"></div>
       </div>
+      <p id="statsDetail" class="text-[11px] text-gray-500 mt-1"></p>
     </div>
   </header>
 
@@ -148,7 +155,7 @@
       <div class="relative">
         <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <input type="text" id="searchInput" placeholder="Cerca film, serie tv, personaggi..." 
-          class="w-full pl-9 pr-8 py-2 bg-marvelDark/80 border border-marvelBorder rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-marvelRed transition">
+          class="w-full pl-9 pr-8 py-2 bg-marvelDark/80 border border-marvelBorder rounded-lg text-base md:text-sm text-white placeholder-gray-500 focus:outline-none focus:border-marvelRed transition">
         <button id="clearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
           <i data-lucide="x-circle" class="w-4 h-4"></i>
         </button>
@@ -157,20 +164,22 @@
       <!-- Filters & Sort Options -->
       <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-marvelBorder/50">
         <!-- Quick Category Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
-          <button onclick="setFilter('all')" class="filter-btn active px-2.5 py-1 rounded-md bg-marvelRed text-white">Tutti</button>
-          <button onclick="setFilter('seen')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Visti</button>
-          <button onclick="setFilter('unseen')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Da Vedere</button>
-          <button onclick="setFilter('Film')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Film</button>
-          <button onclick="setFilter('Serie TV')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Serie TV</button>
-          <button onclick="setFilter('Saga dell\'Infinito')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Infinito</button>
-          <button onclick="setFilter('Saga del Multiverso')" class="filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50">Multiverso</button>
+        <div id="filterBar" class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+          <button data-filter="all" onclick="setFilter(this.dataset.filter)" class="filter-btn">Tutti</button>
+          <button data-filter="seen" onclick="setFilter(this.dataset.filter)" class="filter-btn">Visti</button>
+          <button data-filter="unseen" onclick="setFilter(this.dataset.filter)" class="filter-btn">Da Vedere</button>
+          <button data-filter="Film" onclick="setFilter(this.dataset.filter)" class="filter-btn">Film</button>
+          <button data-filter="Serie TV" onclick="setFilter(this.dataset.filter)" class="filter-btn">Serie TV</button>
+          <button data-filter="Speciale" onclick="setFilter(this.dataset.filter)" class="filter-btn">Speciali</button>
+          <button data-filter="upcoming" onclick="setFilter(this.dataset.filter)" class="filter-btn">In arrivo</button>
+          <button data-filter="Saga dell'Infinito" onclick="setFilter(this.dataset.filter)" class="filter-btn">Infinito</button>
+          <button data-filter="Saga del Multiverso" onclick="setFilter(this.dataset.filter)" class="filter-btn">Multiverso</button>
         </div>
 
         <!-- Sorting Dropdown -->
         <div class="flex items-center gap-1.5 ml-auto text-xs">
           <label class="text-gray-400 font-medium">Ordina:</label>
-          <select id="sortSelect" onchange="renderList()" class="bg-marvelDark border border-marvelBorder rounded-md px-2 py-1 text-white text-xs focus:outline-none focus:border-marvelRed">
+          <select id="sortSelect" onchange="onSortChange()" class="bg-marvelDark border border-marvelBorder rounded-md px-2 py-1 text-white text-base md:text-xs focus:outline-none focus:border-marvelRed">
             <option value="phase">Per Fase</option>
             <option value="year">Per Anno</option>
             <option value="chronological">Ordine Cronologico</option>
@@ -179,6 +188,9 @@
         </div>
       </div>
     </div>
+
+    <!-- NEXT UP -->
+    <div id="nextUp" class="mb-4"></div>
 
     <!-- CARDS GRID CONTAINER -->
     <div id="mcuContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
@@ -191,7 +203,10 @@
       <h3 class="text-lg font-bold text-gray-300">Nessun titolo trovato</h3>
       <p class="text-xs text-gray-500 mt-1">Nessun contenuto rispetta i criteri di ricerca o i filtri selezionati.</p>
     </div>
+    <p id="dataUpdated" class="text-center text-[11px] text-gray-600 mb-6"></p>
   </main>
+
+  <div id="toast" role="status" class="pointer-events-none fixed left-1/2 -translate-x-1/2 bottom-8 z-40 px-4 py-2 rounded-full bg-marvelCard border border-marvelGold/40 text-marvelGold text-xs font-semibold shadow-xl opacity-0 transition-opacity duration-300"></div>
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
@@ -241,7 +256,7 @@
       { id: "ms-marvel", title: "Ms. Marvel", type: "Serie TV", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 34, defaultChecked: true },
       { id: "thor-love-and-thunder", title: "Thor: Love and Thunder", type: "Film", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 35, defaultChecked: true },
       { id: "she-hulk", title: "She-Hulk: Attorney at Law", type: "Serie TV", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 36, defaultChecked: true },
-      { id: "werewolf-by-night", title: "Licantropus (Special Present)", type: "Speciale", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 37, defaultChecked: true },
+      { id: "werewolf-by-night", title: "Licantropus (Special Presentation)", type: "Speciale", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 37, defaultChecked: true },
       { id: "black-panther-wakanda-forever", title: "Black Panther: Wakanda Forever", type: "Film", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 38, defaultChecked: true },
       { id: "guardians-holiday-special", title: "Guardiani della Galassia: Holiday Special", type: "Speciale", releaseYear: 2022, phase: 4, saga: "Saga del Multiverso", chronoOrder: 39, defaultChecked: true },
 
@@ -255,84 +270,115 @@
       { id: "echo", title: "Echo", type: "Serie TV", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 46, defaultChecked: false },
       { id: "deadpool-and-wolverine", title: "Deadpool & Wolverine", type: "Film", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 47, defaultChecked: false },
       { id: "agatha-all-along", title: "Agatha All Along", type: "Serie TV", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 48, defaultChecked: false },
+      { id: "what-if-s3", title: "What If...? (Stagione 3)", type: "Serie TV", releaseYear: 2024, phase: 5, saga: "Saga del Multiverso", chronoOrder: 45.5, defaultChecked: false, note: "Animazione" },
+      { id: "yfn-spider-man-s1", title: "Your Friendly Neighborhood Spider-Man (Stagione 1)", type: "Serie TV", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 49.1, defaultChecked: false, note: "Animazione" },
       { id: "captain-america-brave-new-world", title: "Captain America: Brave New World", type: "Film", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 49, defaultChecked: false },
-      { id: "daredevil-born-again", title: "Daredevil: Born Again", type: "Serie TV", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 50, defaultChecked: false },
+      { id: "daredevil-born-again", title: "Daredevil: Born Again (Stagione 1)", type: "Serie TV", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 50, defaultChecked: false },
       { id: "thunderbolts", title: "Thunderbolts*", type: "Film", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 51, defaultChecked: false },
+      { id: "ironheart", title: "Ironheart", type: "Serie TV", releaseYear: 2025, phase: 5, saga: "Saga del Multiverso", chronoOrder: 51.5, defaultChecked: false },
 
       // PHASE 6
       { id: "fantastic-four-first-steps", title: "The Fantastic Four: First Steps", type: "Film", releaseYear: 2025, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52, defaultChecked: false },
-      { id: "avengers-doomsday", title: "Avengers: Doomsday", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 53, defaultChecked: false },
-      { id: "spider-man-4", title: "Spider-Man 4", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 54, defaultChecked: false },
-      { id: "avengers-secret-wars", title: "Avengers: Secret Wars", type: "Film", releaseYear: 2027, phase: 6, saga: "Saga del Multiverso", chronoOrder: 55, defaultChecked: false }
+      { id: "eyes-of-wakanda", title: "Eyes of Wakanda", type: "Serie TV", releaseYear: 2025, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52.1, defaultChecked: false, note: "Animazione" },
+      { id: "marvel-zombies", title: "Marvel Zombies", type: "Serie TV", releaseYear: 2025, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52.2, defaultChecked: false, note: "Animazione" },
+      { id: "wonder-man", title: "Wonder Man", type: "Serie TV", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52.5, defaultChecked: false },
+      { id: "daredevil-born-again-s2", title: "Daredevil: Born Again (Stagione 2)", type: "Serie TV", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52.6, defaultChecked: false },
+      { id: "punisher-one-last-kill", title: "The Punisher: One Last Kill", type: "Speciale", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 52.7, defaultChecked: false },
+      { id: "spider-man-brand-new-day", title: "Spider-Man: Brand New Day", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 53, defaultChecked: false },
+      { id: "visionquest", title: "VisionQuest", type: "Serie TV", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 53.5, defaultChecked: false, ongoingUntil: "2026-11-30" },
+      { id: "avengers-doomsday", title: "Avengers: Doomsday", type: "Film", releaseYear: 2026, phase: 6, saga: "Saga del Multiverso", chronoOrder: 54, defaultChecked: false, releaseDate: "2026-12-18", when: "18 dic 2026" },
+      { id: "yfn-spider-man-s2", title: "Your Friendly Neighborhood Spider-Man (Stagione 2)", type: "Serie TV", releaseYear: 2027, phase: 6, saga: "Saga del Multiverso", chronoOrder: 54.2, defaultChecked: false, releaseDate: "2027-01-13", when: "13 gen 2027", note: "Animazione" },
+      { id: "daredevil-born-again-s3", title: "Daredevil: Born Again (Stagione 3)", type: "Serie TV", releaseYear: 2027, phase: 6, saga: "Saga del Multiverso", chronoOrder: 54.5, defaultChecked: false, releaseDate: "2027-03-01", when: "Marzo 2027" },
+      { id: "avengers-secret-wars", title: "Avengers: Secret Wars", type: "Film", releaseYear: 2027, phase: 6, saga: "Saga del Multiverso", chronoOrder: 55, defaultChecked: false, releaseDate: "2027-12-17", when: "17 dic 2027" }
     ];
 
     // App State Management
+    const DATA_UPDATED = '21 ottobre 2026';
+    const STORE_KEY = 'mcu_tracker_state_v2';
+    const PREFS_KEY = 'mcu_tracker_prefs';
+    const ID_MIGRATIONS = { 'spider-man-4': 'spider-man-brand-new-day' };
+    const TODAY = new Date();
+    const orderIndex = new Map(initialMCUData.map((item, i) => [item.id, i]));
+
     let userState = {};
     let currentFilter = 'all';
+    let toastTimer;
 
-    // Initialize application
+    // Un titolo senza releaseDate è già uscito; quelli con data futura diventano "In arrivo" e si sbloccano da soli.
+    const isReleased = item => !item.releaseDate || new Date(item.releaseDate) <= TODAY;
+    const isOngoing = item => !!item.ongoingUntil && TODAY <= new Date(item.ongoingUntil + 'T23:59:59');
+    const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
     window.addEventListener('DOMContentLoaded', () => {
       loadState();
+      loadPrefs();
       setupEventListeners();
       checkIosPrompt();
+      document.getElementById('dataUpdated').textContent = `Catalogo aggiornato al ${DATA_UPDATED}`;
       renderList();
-      lucide.createIcons();
     });
 
-    // Load user watch state from LocalStorage or initialize with defaults
+    // Load user watch state from LocalStorage, merging in any new titles and migrating renamed ids
     function loadState() {
-      const saved = localStorage.getItem('mcu_tracker_state_v2');
-      if (saved) {
-        try {
-          userState = JSON.parse(saved);
-        } catch (e) {
-          initDefaultState();
-        }
-      } else {
-        initDefaultState();
-      }
-    }
-
-    function initDefaultState() {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+      if (!saved || typeof saved !== 'object') return initDefaultState();
+      Object.entries(ID_MIGRATIONS).forEach(([oldId, newId]) => {
+        if (oldId in saved) { saved[newId] = saved[oldId]; delete saved[oldId]; }
+      });
       userState = {};
       initialMCUData.forEach(item => {
-        userState[item.id] = item.defaultChecked;
+        userState[item.id] = item.id in saved ? !!saved[item.id] : item.defaultChecked;
       });
       saveState();
     }
 
+    function initDefaultState() {
+      userState = {};
+      initialMCUData.forEach(item => { userState[item.id] = item.defaultChecked; });
+      saveState();
+    }
+
     function saveState() {
-      localStorage.setItem('mcu_tracker_state_v2', JSON.stringify(userState));
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(userState)); } catch (e) {}
       updateProgress();
     }
 
+    function loadPrefs() {
+      try {
+        const p = JSON.parse(localStorage.getItem(PREFS_KEY)) || {};
+        if (p.filter) currentFilter = p.filter;
+        if (p.sort) document.getElementById('sortSelect').value = p.sort;
+      } catch (e) {}
+    }
+
+    function savePrefs() {
+      try {
+        localStorage.setItem(PREFS_KEY, JSON.stringify({ filter: currentFilter, sort: document.getElementById('sortSelect').value }));
+      } catch (e) {}
+    }
+
+    function keepScroll(fn) {
+      const y = window.scrollY;
+      fn();
+      window.scrollTo(0, y);
+    }
+
     function toggleWatchState(id) {
+      const item = initialMCUData.find(i => i.id === id);
+      if (!item || !isReleased(item)) return;
       userState[id] = !userState[id];
       saveState();
-      
-      // Update UI elements without complete re-render for smooth interaction
-      const card = document.getElementById(`card-${id}`);
-      const checkIcon = document.getElementById(`check-${id}`);
-      const badge = document.getElementById(`badge-${id}`);
+      keepScroll(renderList);
+    }
 
-      if (card && checkIcon && badge) {
-        if (userState[id]) {
-          card.classList.add('border-marvelRed/60', 'bg-gradient-to-b', 'from-marvelCard', 'to-red-950/20');
-          card.classList.remove('border-marvelBorder', 'opacity-70');
-          checkIcon.className = "w-5 h-5 rounded-full bg-marvelRed text-white flex items-center justify-center transition";
-          checkIcon.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>`;
-          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded-full bg-marvelRed/20 text-marvelRed border border-marvelRed/30";
-          badge.textContent = "Visto";
-        } else {
-          card.classList.remove('border-marvelRed/60', 'bg-gradient-to-b', 'from-marvelCard', 'to-red-950/20');
-          card.classList.add('border-marvelBorder', 'opacity-75');
-          checkIcon.className = "w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition";
-          checkIcon.innerHTML = "";
-          badge.className = "text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700";
-          badge.textContent = "Da Vedere";
-        }
-        lucide.createIcons();
-      }
+    function togglePhase(phase) {
+      const items = initialMCUData.filter(i => i.phase === phase && isReleased(i));
+      const allSeen = items.every(i => userState[i.id]);
+      if (allSeen && !confirm(`Rimuovere tutti i titoli della Fase ${phase} dai visti?`)) return;
+      items.forEach(i => { userState[i.id] = !allSeen; });
+      saveState();
+      keepScroll(renderList);
     }
 
     function resetProgress() {
@@ -342,32 +388,104 @@
       }
     }
 
-    // Update Progress Bar & Counter
-    function updateProgress() {
-      const total = initialMCUData.length;
-      const completed = Object.values(userState).filter(Boolean).length;
-      const percentage = Math.round((completed / total) * 100);
+    // Backup / restore (utile su iOS, dove Safari può svuotare il localStorage)
+    async function exportProgress() {
+      const text = JSON.stringify(userState);
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Backup copiato negli appunti');
+      } catch (e) {
+        prompt('Copia questo backup:', text);
+      }
+    }
 
-      document.getElementById('statsCounter').textContent = `${completed} / ${total} (${percentage}%)`;
-      document.getElementById('progressBar').style.width = `${percentage}%`;
+    function importProgress() {
+      const text = prompt('Incolla qui il backup copiato in precedenza:');
+      if (!text) return;
+      try {
+        const data = JSON.parse(text);
+        if (!data || typeof data !== 'object') throw new Error('invalid');
+        initialMCUData.forEach(item => {
+          if (item.id in data && isReleased(item)) userState[item.id] = !!data[item.id];
+        });
+        saveState();
+        renderList();
+        showToast('Progressi ripristinati');
+      } catch (e) {
+        alert('Backup non valido.');
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.add('opacity-0'), 2200);
+    }
+
+    // Progress bar & counters (only titles already released count)
+    function updateProgress() {
+      const released = initialMCUData.filter(isReleased);
+      const countSeen = list => list.filter(i => userState[i.id]).length;
+      const done = countSeen(released);
+      const pct = released.length ? Math.round((done / released.length) * 100) : 0;
+
+      document.getElementById('statsCounter').textContent = `${done} / ${released.length} (${pct}%)`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      const part = (label, type) => {
+        const list = released.filter(i => i.type === type);
+        return `${label} ${countSeen(list)}/${list.length}`;
+      };
+      document.getElementById('statsDetail').textContent =
+        [part('Film', 'Film'), part('Serie TV', 'Serie TV'), part('Speciali', 'Speciale')].join('  ·  ');
     }
 
     // Filters and Sorting
+    const BTN_ON = 'filter-btn px-2.5 py-1 rounded-md bg-marvelRed text-white font-medium shadow';
+    const BTN_OFF = 'filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50 font-medium';
+
     function setFilter(filter) {
       currentFilter = filter;
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        if (btn.textContent.toLowerCase().includes(filter.toLowerCase()) || 
-           (filter === 'all' && btn.textContent === 'Tutti') ||
-           (filter === 'seen' && btn.textContent === 'Visti') ||
-           (filter === 'unseen' && btn.textContent === 'Da Vedere') ||
-           (filter === "Saga dell'Infinito" && btn.textContent === 'Infinito') ||
-           (filter === "Saga del Multiverso" && btn.textContent === 'Multiverso')) {
-          btn.className = "filter-btn active px-2.5 py-1 rounded-md bg-marvelRed text-white font-medium shadow";
-        } else {
-          btn.className = "filter-btn px-2.5 py-1 rounded-md bg-marvelDark border border-marvelBorder text-gray-300 hover:border-marvelRed/50 font-medium";
-        }
-      });
+      savePrefs();
       renderList();
+    }
+
+    function onSortChange() {
+      savePrefs();
+      renderList();
+    }
+
+    function applyFilterStyles() {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        const on = btn.dataset.filter === currentFilter;
+        btn.className = on ? BTN_ON : BTN_OFF;
+        btn.setAttribute('aria-pressed', on);
+      });
+    }
+
+    function matchesFilter(item) {
+      const released = isReleased(item);
+      switch (currentFilter) {
+        case 'seen': return released && !!userState[item.id];
+        case 'unseen': return released && !userState[item.id];
+        case 'upcoming': return !released;
+        case 'Film': case 'Serie TV': case 'Speciale': return item.type === currentFilter;
+        case "Saga dell'Infinito": case 'Saga del Multiverso': return item.saga === currentFilter;
+        default: return true;
+      }
+    }
+
+    function sortItems(items, sortVal) {
+      return [...items].sort((a, b) => {
+        let d = 0;
+        if (sortVal === 'phase') d = (a.phase - b.phase) || (a.releaseYear - b.releaseYear);
+        else if (sortVal === 'year') d = a.releaseYear - b.releaseYear;
+        else if (sortVal === 'chronological') d = a.chronoOrder - b.chronoOrder;
+        else if (sortVal === 'title') d = a.title.localeCompare(b.title, 'it');
+        return d || (orderIndex.get(a.id) - orderIndex.get(b.id));
+      });
     }
 
     function setupEventListeners() {
@@ -385,107 +503,129 @@
       renderList();
     }
 
+    // "Prossimo da vedere": primo titolo uscito e non ancora visto, secondo l'ordine scelto
+    function renderNextUp(ordered) {
+      const el = document.getElementById('nextUp');
+      const next = ordered.find(i => isReleased(i) && !userState[i.id]);
+      if (!next) {
+        el.innerHTML = `<div class="rounded-xl border border-marvelGold/40 bg-marvelCard p-3 text-xs text-marvelGold font-semibold">Hai visto tutto ciò che è uscito finora. Ripassa alla prossima uscita!</div>`;
+        return;
+      }
+      el.innerHTML = `
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-marvelGold/30 bg-gradient-to-r from-red-950/40 to-marvelCard p-3">
+          <div class="min-w-0">
+            <p class="text-[10px] uppercase tracking-wider font-bold text-marvelGold">Prossimo da vedere</p>
+            <p class="text-sm font-extrabold text-white truncate">${next.title}</p>
+          </div>
+          <button type="button" class="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg bg-marvelRed text-white hover:bg-red-600 transition">Visto</button>
+        </div>`;
+      el.querySelector('button').onclick = () => toggleWatchState(next.id);
+    }
+
+    function buildPhaseHeader(item) {
+      const items = initialMCUData.filter(i => i.phase === item.phase && isReleased(i));
+      const seen = items.filter(i => userState[i.id]).length;
+      const allSeen = items.length > 0 && seen === items.length;
+      const el = document.createElement('div');
+      el.className = 'col-span-full flex items-center justify-between gap-3 pt-2 pb-1.5 border-b border-marvelBorder/60';
+      el.innerHTML = `
+        <div class="min-w-0">
+          <h3 class="text-sm font-black uppercase tracking-wider text-white">Fase ${item.phase}
+            <span class="text-marvelGold font-semibold normal-case tracking-normal text-xs ml-1">${item.saga}</span></h3>
+          <p class="text-[11px] text-gray-400">${seen} / ${items.length} visti</p>
+        </div>
+        ${items.length ? `<button type="button" class="text-[11px] font-semibold px-2.5 py-1 rounded-md border border-marvelBorder text-gray-300 hover:border-marvelGold/60 hover:text-marvelGold transition whitespace-nowrap">${allSeen ? 'Deseleziona fase' : 'Segna fase come vista'}</button>` : ''}`;
+      const btn = el.querySelector('button');
+      if (btn) btn.onclick = () => togglePhase(item.phase);
+      return el;
+    }
+
+    function buildCard(item) {
+      const released = isReleased(item);
+      const watched = released && !!userState[item.id];
+      const card = document.createElement('div');
+      const base = 'rounded-xl p-3.5 border transition-all duration-200 select-none relative overflow-hidden flex flex-col justify-between';
+
+      card.id = `card-${item.id}`;
+      if (!released) {
+        card.className = `${base} border-dashed border-marvelGold/40 bg-marvelCard/60`;
+      } else {
+        card.className = `${base} cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-marvelGold ${
+          watched ? 'border-marvelRed/60 bg-gradient-to-b from-marvelCard to-red-950/20 shadow-md'
+                  : 'border-marvelBorder bg-marvelCard hover:border-gray-500 opacity-75'}`;
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-pressed', watched);
+        card.onclick = () => toggleWatchState(item.id);
+        card.onkeydown = e => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleWatchState(item.id); }
+        };
+      }
+
+      let badgeCls, badgeTxt, checkHtml;
+      if (!released) {
+        badgeCls = 'font-bold bg-marvelGold/10 text-marvelGold border border-marvelGold/30'; badgeTxt = 'In arrivo';
+        checkHtml = '<i data-lucide="clock" class="w-4 h-4 text-marvelGold"></i>';
+      } else if (watched) {
+        badgeCls = 'font-bold bg-marvelRed/20 text-marvelRed border border-marvelRed/30'; badgeTxt = 'Visto';
+        checkHtml = '<div class="w-5 h-5 rounded-full bg-marvelRed text-white flex items-center justify-center"><i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i></div>';
+      } else {
+        badgeCls = 'font-medium bg-gray-800 text-gray-400 border border-gray-700'; badgeTxt = 'Da Vedere';
+        checkHtml = '<div class="w-5 h-5 rounded-full border border-gray-600"></div>';
+      }
+      const noteText = [item.note, isOngoing(item) ? 'In corso' : ''].filter(Boolean).join(' · ');
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-marvelDark border border-marvelBorder text-marvelGold">Fase ${item.phase}</span>
+            <span class="text-[10px] font-medium text-gray-400">${item.type}</span>
+          </div>
+          ${checkHtml}
+        </div>
+        <div class="my-1">
+          <h2 class="font-extrabold text-sm text-white leading-snug line-clamp-2">${item.title}</h2>
+          ${noteText ? `<p class="text-[11px] text-gray-500 mt-0.5">${noteText}</p>` : ''}
+        </div>
+        <div class="flex items-center justify-between mt-3 pt-2 border-t border-marvelBorder/40 text-xs">
+          <span class="text-gray-400 font-medium">${item.when || item.releaseYear}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full ${badgeCls}">${badgeTxt}</span>
+        </div>`;
+      return card;
+    }
+
     // Render Title Cards
     function renderList() {
       const container = document.getElementById('mcuContainer');
       const emptyState = document.getElementById('emptyState');
-      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+      const q = norm(document.getElementById('searchInput').value.trim());
       const sortVal = document.getElementById('sortSelect').value;
+      const sorted = sortItems(initialMCUData, sortVal);
 
-      let filtered = initialMCUData.filter(item => {
-        // Search Filter
-        const matchesSearch = item.title.toLowerCase().includes(searchVal) || 
-                              item.type.toLowerCase().includes(searchVal) ||
-                              item.releaseYear.toString().includes(searchVal);
-        if (!matchesSearch) return false;
-
-        // Category / Status Filter
-        if (currentFilter === 'seen') return userState[item.id] === true;
-        if (currentFilter === 'unseen') return userState[item.id] === false;
-        if (currentFilter === 'Film') return item.type === 'Film';
-        if (currentFilter === 'Serie TV') return item.type === 'Serie TV';
-        if (currentFilter === "Saga dell'Infinito") return item.saga === "Saga dell'Infinito";
-        if (currentFilter === "Saga del Multiverso") return item.saga === "Saga del Multiverso";
-
-        return true;
+      const filtered = sorted.filter(item => {
+        const haystack = norm(`${item.title} ${item.type} ${item.releaseYear} fase ${item.phase} ${item.saga} ${item.note || ''}`);
+        return (!q || haystack.includes(q)) && matchesFilter(item);
       });
 
-      // Sorting
-      filtered.sort((a, b) => {
-        if (sortVal === 'phase') {
-          if (a.phase !== b.phase) return a.phase - b.phase;
-          return a.releaseYear - b.releaseYear;
-        } else if (sortVal === 'year') {
-          return a.releaseYear - b.releaseYear;
-        } else if (sortVal === 'chronological') {
-          return a.chronoOrder - b.chronoOrder;
-        } else if (sortVal === 'title') {
-          return a.title.localeCompare(b.title);
-        }
-      });
+      applyFilterStyles();
+      renderNextUp(sortVal === 'title' ? initialMCUData : sorted);
 
       container.innerHTML = '';
+      emptyState.classList.toggle('hidden', filtered.length > 0);
 
-      if (filtered.length === 0) {
-        emptyState.classList.remove('hidden');
-      } else {
-        emptyState.classList.add('hidden');
-      }
-
+      let lastPhase = null;
       filtered.forEach(item => {
-        const isWatched = userState[item.id];
-        const card = document.createElement('div');
-        
-        card.id = `card-${item.id}`;
-        card.onclick = () => toggleWatchState(item.id);
-        
-        card.className = `cursor-pointer rounded-xl p-3.5 border transition-all duration-200 select-none relative overflow-hidden flex flex-col justify-between ${
-          isWatched 
-            ? 'border-marvelRed/60 bg-gradient-to-b from-marvelCard to-red-950/20 shadow-md' 
-            : 'border-marvelBorder bg-marvelCard hover:border-gray-500 opacity-75'
-        }`;
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <div class="flex items-center gap-1.5 flex-wrap">
-              <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-marvelDark border border-marvelBorder text-marvelGold">
-                Fase ${item.phase}
-              </span>
-              <span class="text-[10px] font-medium text-gray-400">
-                ${item.type}
-              </span>
-            </div>
-            <div id="check-${item.id}" class="${
-              isWatched 
-                ? 'w-5 h-5 rounded-full bg-marvelRed text-white flex items-center justify-center transition' 
-                : 'w-5 h-5 rounded-full border border-gray-600 flex items-center justify-center transition'
-            }">
-              ${isWatched ? '<i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>' : ''}
-            </div>
-          </div>
-
-          <div class="my-1">
-            <h2 class="font-extrabold text-sm text-white leading-snug line-clamp-2">${item.title}</h2>
-          </div>
-
-          <div class="flex items-center justify-between mt-3 pt-2 border-t border-marvelBorder/40 text-xs">
-            <span class="text-gray-400 font-medium">${item.releaseYear}</span>
-            <span id="badge-${item.id}" class="${
-              isWatched 
-                ? 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-marvelRed/20 text-marvelRed border border-marvelRed/30' 
-                : 'text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700'
-            }">
-              ${isWatched ? 'Visto' : 'Da Vedere'}
-            </span>
-          </div>
-        `;
-
-        container.appendChild(card);
+        if (sortVal === 'phase' && item.phase !== lastPhase) {
+          lastPhase = item.phase;
+          container.appendChild(buildPhaseHeader(item));
+        }
+        container.appendChild(buildCard(item));
       });
 
       updateProgress();
       lucide.createIcons();
     }
+
 
     // iOS PWA Home Banner logic
     function checkIosPrompt() {
